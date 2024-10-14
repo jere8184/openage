@@ -4,7 +4,11 @@
 
 #include <memory>
 #include <unordered_map>
+<<<<<<< HEAD
+=======
 #include <unordered_set>
+#include <set>
+>>>>>>> 3067cc49 (s)
 
 #include "coord/tile.h"
 #include "datastructure/pairing_heap.h"
@@ -18,6 +22,7 @@ class Integrator;
 class Portal;
 class FlowField;
 
+<<<<<<< HEAD
 /**
  * Pathfinder for flow field pathfinding.
  *
@@ -122,10 +127,11 @@ private:
 	 */
 	std::shared_ptr<Integrator> integrator;
 };
+=======
+>>>>>>> 3067cc49 (s)
 
 
 class PortalNode;
-
 using node_t = std::shared_ptr<PortalNode>;
 
 /**
@@ -168,10 +174,18 @@ public:
 	bool operator==(const PortalNode &other) const;
 
 	/**
-	 * Calculates the actual movement cose to another node.
+	 * Calculates the actual movement cost to another node.
 	 */
 	int cost_to(const PortalNode &other) const;
 
+
+	struct ComparePairs {
+		bool operator()(const std::pair<node_t, int>& a, const std::pair<node_t, int>& b) const {
+			return a.second < b.second;
+		}
+	};
+
+	std::set<std::pair<node_t, int>, ComparePairs> neighbours;
 	/**
 	 * Create a backtrace path beginning at this node.
 	 */
@@ -228,5 +242,115 @@ public:
 	heap_t::element_t heap_node;
 };
 
+
+
+
+/**
+ * Pathfinder for flow field pathfinding.
+ *
+ * The pathfinder manages the grids defining the pathable ingame areas and
+ * provides an interface for making pathfinding requests.
+ *
+ * Pathfinding consists of a multi-step process: First, there is a high-level
+ * search using A* to identify the sectors of the grid that should be traversed.
+ * Afterwards, flow fields are calculated from the target sector to the start
+ * sector, which are then used to guide the actual unit movement.
+ */
+class Pathfinder {
+public:
+	/**
+	 * Create a new pathfinder.
+	 */
+	Pathfinder();
+	~Pathfinder() = default;
+
+	/**
+	 * Get the grid at a specified index.
+	 *
+	 * @param id ID of the grid.
+	 *
+	 * @return Pathfinding grid.
+	 */
+	const std::shared_ptr<Grid> &get_grid(grid_id_t id) const;
+
+	/**
+	 * Add a grid to the pathfinder.
+	 *
+	 * @param grid Grid to add.
+	 */
+	void add_grid(const std::shared_ptr<Grid> &grid);
+
+	/**
+	 * Get the path for a pathfinding request.
+	 *
+	 * @param request Pathfinding request.
+	 *
+	 * @return Path found by the pathfinder.
+	 */
+	const Path get_path(const PathRequest &request);
+
+private:
+	using portal_star_t = std::pair<PathResult, std::vector<std::shared_ptr<Portal>>>;
+
+	/**
+	 * High-level pathfinder. Uses A* to find the path through the portals of sectors.
+	 *
+	 * @param request Pathfinding request.
+	 * @param target_portal_ids IDs of portals that can be reached from the target cell.
+	 * @param start_portal_ids IDs of portals that can be reached from the start cell.
+	 *
+	 * @return Portals to traverse in order to reach the target.
+	 */
+	const portal_star_t portal_a_star(const PathRequest &request,
+	                                  const std::unordered_set<portal_id_t> &target_portal_ids,
+	                                  const std::unordered_set<portal_id_t> &start_portal_ids) const;
+
+
+	nodemap_t portal_map(std::shared_ptr<openage::path::Grid> grid) const;
+
+	/**
+	 * Low-level pathfinder. Uses flow fields to find the path through the sectors.
+	 *
+	 * @param flow_fields Flow fields for the sectors.
+	 * @param request Pathfinding request.
+	 *
+	 * @return Waypoint coordinates to traverse in order to reach the target.
+	 */
+	const std::vector<coord::tile> get_waypoints(const std::vector<std::pair<sector_id_t, std::shared_ptr<FlowField>>> &flow_fields,
+	                                             const PathRequest &request) const;
+
+	/**
+	 * Calculate the heuristic cost between a portal and a target cell.
+	 *
+	 * @param portal_pos Position of the portal (absolute on the grid).
+	 *                   This should be the center of the portal exit.
+	 * @param target_pos Position of the target cell (absolute on the grid).
+	 *
+	 * @return Heuristic cost between the cells.
+	 */
+	static int heuristic_cost(const coord::tile &portal_pos, const coord::tile &target_pos);
+
+	/**
+	 * Calculate the distance cost between two portals.
+	 *
+	 * @param portal1_pos Center of the first portal (relative to sector origin).
+	 * @param portal2_pos Center of the second portal (relative to sector origin).
+	 *
+	 * @return Distance cost between the portal centers.
+	 */
+	static int distance_cost(const coord::tile_delta &portal1_pos, const coord::tile_delta &portal2_pos);
+
+	/**
+	 * Grids managed by this pathfinder.
+	 *
+	 * Each grid can have separate pathing.
+	 */
+	std::unordered_map<grid_id_t, std::shared_ptr<Grid>> grids;
+
+	/**
+	 * Integrator for flow field calculations.
+	 */
+	std::shared_ptr<Integrator> integrator;
+};
 
 } // namespace openage::path
