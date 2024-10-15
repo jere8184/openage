@@ -4,11 +4,8 @@
 
 #include <memory>
 #include <unordered_map>
-<<<<<<< HEAD
-=======
 #include <unordered_set>
 #include <set>
->>>>>>> 3067cc49 (s)
 
 #include "coord/tile.h"
 #include "datastructure/pairing_heap.h"
@@ -22,7 +19,6 @@ class Integrator;
 class Portal;
 class FlowField;
 
-<<<<<<< HEAD
 /**
  * Pathfinder for flow field pathfinding.
  *
@@ -127,8 +123,6 @@ private:
 	 */
 	std::shared_ptr<Integrator> integrator;
 };
-=======
->>>>>>> 3067cc49 (s)
 
 
 class PortalNode;
