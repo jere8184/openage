@@ -33,11 +33,9 @@ template <size_t N>
 class CostField {
 public:
 	/**
-	 * Create a square cost field with a specified size.
-	 *
-	 * @param size Side length of the field.
+	 * Create a square cost field.
 	 */
-	CostField(size_t size);
+	CostField();
 
 	/**
 	 * Get the size of the cost field.
@@ -108,7 +106,7 @@ public:
 	 *
 	 * @return Cost field values.
 	 */
-	const std::vector<cost_t> &get_costs() const;
+	const std::array<cost_t, N> &get_costs() const;
 
 	/**
 	 * Set the cost field values.
@@ -116,7 +114,7 @@ public:
 	 * @param cells Cost field values.
 	 * @param valid_until Time at which the cost value expires.
 	 */
-	void set_costs(std::vector<cost_t> &&cells, const time::time_t &changed);
+	void set_costs(std::array<cost_t, N> &&cells, const time::time_t &changed);
 
 	/**
 	 * Stamp a cost field cell at a given time.
@@ -167,12 +165,12 @@ private:
 	/**
 	 * Cost field values.
 	 */
-	std::vector<cost_t> cells;
+	std::array<cost_t, N> cells;
 
 	/**
 	 * Cost stamp vector.
 	 */
-	std::vector<std::optional<cost_stamp_t>> cost_stamps;
+	std::array<std::optional<cost_stamp_t>, N> cost_stamps;
 
 
 	/**
@@ -182,27 +180,26 @@ private:
 };
 
 template <size_t N>
-CostField<N>::CostField(size_t size) :
-	size{size},
+CostField<N>::CostField() :
 	valid_until{time::TIME_MIN},
-	cells(this->size * this->size, COST_MIN),
+	cells(N * N, COST_MIN),
 	cell_cost_history() {
-	log::log(DBG << "Created cost field with size " << this->size << "x" << this->size);
+	log::log(DBG << "Created cost field with size " << N << "x" << N);
 }
 
 template <size_t N>
 size_t CostField<N>::get_size() const {
-	return this->size;
+	return N;
 }
 
 template <size_t N>
 cost_t CostField<N>::get_cost(const coord::tile_delta &pos) const {
-	return this->cells.at(pos.ne + pos.se * this->size);
+	return this->cells.at(pos.ne + pos.se * N);
 }
 
 template <size_t N>
 cost_t CostField<N>::get_cost(size_t x, size_t y) const {
-	return this->cells.at(x + y * this->size);
+	return this->cells.at(x + y * N);
 }
 
 template <size_t N>
@@ -212,21 +209,21 @@ cost_t CostField<N>::get_cost(size_t idx) const {
 
 template <size_t N>
 void CostField<N>::set_cost(const coord::tile_delta &pos, cost_t cost, const time::time_t &valid_until) {
-	this->set_cost(pos.ne + pos.se * this->size, cost, valid_until);
+	this->set_cost(pos.ne + pos.se * N, cost, valid_until);
 }
 
 template <size_t N>
 void CostField<N>::set_cost(size_t x, size_t y, cost_t cost, const time::time_t &valid_until) {
-	this->set_cost(x + y * this->size, cost, valid_until);
+	this->set_cost(x + y * N, cost, valid_until);
 }
 
 template <size_t N>
-const std::vector<cost_t> &CostField<N>::get_costs() const {
+const std::array<cost_t, N> &CostField<N>::get_costs() const {
 	return this->cells;
 }
 
 template <size_t N>
-void CostField<N>::set_costs(std::vector<cost_t> &&cells, const time::time_t &valid_until) {
+void CostField<N>::set_costs(std::array<cost_t, N> &&cells, const time::time_t &valid_until) {
 	ENSURE(cells.size() == this->cells.size(),
 	       "cells vector has wrong size: " << cells.size()
 	                                       << "; expected: "

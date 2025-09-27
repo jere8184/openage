@@ -25,14 +25,14 @@
 namespace openage::path::tests {
 
 void path_demo_1(const util::Path &path) {
-	auto grid = std::make_shared<Grid>(0, util::Vector2s{4, 3}, 10);
+	auto grid = std::make_shared<Grid<path::SECTOR_SIZE>>(0, util::Vector2s{4, 3}, 10);
 
 	// Initialize the cost field for each sector.
 	for (auto &sector : grid->get_sectors()) {
 		auto cost_field = sector->get_cost_field();
 
 		// Read the data from the preconfigured table
-		std::vector<cost_t> sector_cost = SECTORS_COST.at(sector->get_id());
+		std::array<cost_t, 100> sector_cost = SECTORS_COST.at(sector->get_id());
 
 		// Set the cost field for the sector
 		cost_field->set_costs(std::move(sector_cost), time::TIME_MAX);
@@ -92,7 +92,7 @@ void path_demo_1(const util::Path &path) {
 	}
 
 	// Create a pathfinder for searching paths on the grid
-	auto pathfinder = std::make_shared<path::Pathfinder>();
+	auto pathfinder = std::make_shared<path::Pathfinder<path::SECTOR_SIZE>>();
 	pathfinder->add_grid(grid);
 
 	// Add a timer to measure the pathfinding speed
@@ -200,7 +200,7 @@ void path_demo_1(const util::Path &path) {
 RenderManager1::RenderManager1(const std::shared_ptr<renderer::gui::GuiApplicationWithLogger> &app,
                                const std::shared_ptr<renderer::Window> &window,
                                const util::Path &path,
-                               const std::shared_ptr<path::Grid> &grid) :
+                               const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid) :
 	path{path},
 	grid{grid},
 	app{app},
@@ -409,7 +409,7 @@ void RenderManager1::init_shaders() {
 }
 
 
-renderer::resources::MeshData RenderManager1::get_grid_mesh(const std::shared_ptr<path::Grid> &grid) {
+renderer::resources::MeshData RenderManager1::get_grid_mesh(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid) {
 	// increase by 1 in every dimension because to get the vertex length
 	// of each dimension
 	util::Vector2s size{
@@ -464,7 +464,7 @@ renderer::resources::MeshData RenderManager1::get_grid_mesh(const std::shared_pt
 	return {std::move(vert_data), std::move(idx_data), info};
 }
 
-void RenderManager1::create_impassible_tiles(const std::shared_ptr<path::Grid> &grid) {
+void RenderManager1::create_impassible_tiles(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid) {
 	auto width = grid->get_size()[0];
 	auto height = grid->get_size()[1];
 	auto sector_size = grid->get_sector_size();
@@ -526,7 +526,7 @@ void RenderManager1::create_impassible_tiles(const std::shared_ptr<path::Grid> &
 	}
 }
 
-void RenderManager1::create_portal_tiles(const std::shared_ptr<path::Grid> &grid) {
+void RenderManager1::create_portal_tiles(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid) {
 	auto width = grid->get_size()[0];
 	auto height = grid->get_size()[1];
 	auto sector_size = grid->get_sector_size();
