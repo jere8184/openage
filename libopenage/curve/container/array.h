@@ -43,8 +43,8 @@ public:
 	 * @param notifier Function to call when this curve changes.
 	 * @param default_vals Default values for the array elements.
 	 */
-	Array(const std::shared_ptr<event::EventLoop> &loop = nullptr,
-	      size_t id = 0,
+	Array(const std::shared_ptr<event::EventLoop> &loop,
+	      size_t id,
 	      const std::string &idstr = "",
 	      const EventEntity::single_change_notifier &notifier = nullptr,
 	      const std::array<T, Size> &default_vals = {}) :
