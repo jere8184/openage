@@ -35,14 +35,14 @@ public:
 	/**
 	 * Create a square cost field.
 	 */
-	CostField();
+	CostField(const std::shared_ptr<event::EventLoop> &loop = nullptr, size_t id = 0);
 
 	/**
 	 * Get the size of the cost field.
 	 *
 	 * @return Size of the cost field.
 	 */
-	size_t get_size() const;
+	constexpr size_t get_size() const;
 
 	/**
 	 * Get the cost at a specified position.
@@ -151,6 +151,9 @@ public:
 	 */
 	void clear_dirty();
 
+
+	const curve::Array<cost_t, N> &get_cost_history() const;
+
 private:
 	/**
 	 * Side length of the field.
@@ -180,15 +183,15 @@ private:
 };
 
 template <size_t N>
-CostField<N>::CostField() :
+CostField<N>::CostField(const std::shared_ptr<event::EventLoop> &loop, size_t id) :
 	valid_until{time::TIME_MIN},
 	cells(N * N, COST_MIN),
-	cell_cost_history() {
+	cell_cost_history(loop, id) {
 	log::log(DBG << "Created cost field with size " << N << "x" << N);
 }
 
 template <size_t N>
-size_t CostField<N>::get_size() const {
+constexpr size_t CostField<N>::get_size() const {
 	return N;
 }
 
@@ -270,6 +273,11 @@ template <size_t N>
 void CostField<N>::clear_dirty() {
 	this->valid_until = time::TIME_MAX;
 }
+
+template <size_t N>
+const curve::Array<cost_t, N> &CostField<N>::get_cost_history() const {
+	return this->cell_cost_history;
+};
 
 } // namespace path
 } // namespace openage

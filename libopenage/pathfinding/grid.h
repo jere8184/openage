@@ -29,11 +29,9 @@ public:
 	 *
 	 * @param id ID of the grid.
 	 * @param size Size of the grid in sectors (width x height).
-	 * @param sector_size Side length of each sector.
 	 */
 	Grid(grid_id_t id,
-	     const util::Vector2s &size,
-	     size_t sector_size);
+	     const util::Vector2s &size);
 
 	/**
 	 * Create a grid of width x height sectors from a list of existing sectors.
@@ -60,12 +58,6 @@ public:
 	 */
 	const util::Vector2s &get_size() const;
 
-	/**
-	 * Get the side length of the sectors on the grid (in number of cells).
-	 *
-	 * @return Sector side length (in number of cells).
-	 */
-	size_t get_sector_size() const;
 
 	/**
 	 * Get the sector at a specified position.
@@ -121,10 +113,6 @@ private:
 	 */
 	util::Vector2s size;
 
-	/**
-	 * Side length of the grid sectors.
-	 */
-	size_t sector_size;
 
 	/**
 	 * Sectors of the grid.
@@ -141,11 +129,9 @@ private:
 
 template <size_t N>
 Grid<N>::Grid(grid_id_t id,
-              const util::Vector2s &size,
-              size_t sector_size) :
+              const util::Vector2s &size) :
 	id{id},
-	size{size},
-	sector_size{sector_size} {
+	size{size} {
 	for (size_t y = 0; y < size[1]; y++) {
 		for (size_t x = 0; x < size[0]; x++) {
 			this->sectors.push_back(
@@ -165,8 +151,6 @@ Grid<N>::Grid(grid_id_t id,
 	ENSURE(this->sectors.size() == size[0] * size[1],
 	       "Grid has size " << size[0] << "x" << size[1] << " (" << size[0] * size[1] << " sectors), "
 	                        << "but only " << this->sectors.size() << " sectors were provided");
-
-	this->sector_size = sectors.at(0)->get_cost_field()->get_size();
 }
 
 template <size_t N>
@@ -177,11 +161,6 @@ grid_id_t Grid<N>::get_id() const {
 template <size_t N>
 const util::Vector2s &Grid<N>::get_size() const {
 	return this->size;
-}
-
-template <size_t N>
-size_t Grid<N>::get_sector_size() const {
-	return this->sector_size;
 }
 
 template <size_t N>

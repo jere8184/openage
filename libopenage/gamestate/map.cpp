@@ -26,10 +26,9 @@ Map::Map(const std::shared_ptr<GameState> &state,
 	std::unordered_set<nyan::fqon_t> path_types = nyan_db->get_obj_children_all("engine.util.path_type.PathType");
 	size_t grid_idx = 0;
 	auto chunk_size = this->terrain->get_chunk(0)->get_size();
-	auto side_length = std::max(chunk_size[0], chunk_size[1]);
 	auto grid_size = this->terrain->get_chunks_size();
 	for (const auto &path_type : path_types) {
-		auto grid = std::make_shared<path::Grid<path::SECTOR_SIZE>>(grid_idx, grid_size, side_length);
+		auto grid = std::make_shared<path::Grid<path::SECTOR_SIZE>>(grid_idx, grid_size);
 		this->pathfinder->add_grid(grid);
 
 		this->grid_lookup.emplace(path_type, grid_idx);

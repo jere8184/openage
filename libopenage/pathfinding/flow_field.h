@@ -51,7 +51,7 @@ public:
 	 *
 	 * @return Size of the flow field.
 	 */
-	size_t get_size() const;
+	constexpr size_t get_size() const;
 
 	/**
 	 * Get the flow field value at a specified position.
@@ -194,7 +194,7 @@ FlowField<N>::FlowField(const std::shared_ptr<IntegrationField<N>> &integration_
 }
 
 template <size_t N>
-size_t FlowField<N>::get_size() const {
+constexpr size_t FlowField<N>::get_size() const {
 	return N;
 }
 

@@ -25,7 +25,7 @@
 namespace openage::path::tests {
 
 void path_demo_1(const util::Path &path) {
-	auto grid = std::make_shared<Grid<path::SECTOR_SIZE>>(0, util::Vector2s{4, 3}, 10);
+	auto grid = std::make_shared<Grid<path::SECTOR_SIZE>>(0, util::Vector2s{4, 3});
 
 	// Initialize the cost field for each sector.
 	for (auto &sector : grid->get_sectors()) {
@@ -134,8 +134,8 @@ void path_demo_1(const util::Path &path) {
 	window->add_mouse_button_callback([&](const QMouseEvent &ev) {
 		if (ev.type() == QEvent::MouseButtonRelease) {
 			// From the mouse position, calculate the position/cell on the grid
-			auto cell_count_x = grid->get_size()[0] * grid->get_sector_size();
-			auto cell_count_y = grid->get_size()[1] * grid->get_sector_size();
+			auto cell_count_x = grid->get_size()[0] * path::SECTOR_SIZE;
+			auto cell_count_y = grid->get_size()[1] * path::SECTOR_SIZE;
 			auto window_size = window->get_size();
 
 			double cell_size_x = static_cast<double>(window_size[0]) / cell_count_x;
@@ -301,8 +301,8 @@ void RenderManager1::init_passes() {
 	// Create object for the grid
 	auto model = Eigen::Affine3f::Identity();
 	model.prescale(Eigen::Vector3f{
-		2.0f / (this->grid->get_size()[0] * this->grid->get_sector_size()),
-		2.0f / (this->grid->get_size()[1] * this->grid->get_sector_size()),
+		2.0f / (this->grid->get_size()[0] * path::SECTOR_SIZE),
+		2.0f / (this->grid->get_size()[1] * path::SECTOR_SIZE),
 		1.0f});
 	model.pretranslate(Eigen::Vector3f{-1.0f, -1.0f, 0.0f});
 	auto grid_unifs = grid_shader->new_uniform_input(
@@ -413,8 +413,8 @@ renderer::resources::MeshData RenderManager1::get_grid_mesh(const std::shared_pt
 	// increase by 1 in every dimension because to get the vertex length
 	// of each dimension
 	util::Vector2s size{
-		grid->get_size()[0] * grid->get_sector_size() + 1,
-		grid->get_size()[1] * grid->get_sector_size() + 1};
+		grid->get_size()[0] * path::SECTOR_SIZE + 1,
+		grid->get_size()[1] * path::SECTOR_SIZE + 1};
 
 	// add vertices for the cells of the grid
 	std::vector<float> verts{};
@@ -467,7 +467,7 @@ renderer::resources::MeshData RenderManager1::get_grid_mesh(const std::shared_pt
 void RenderManager1::create_impassible_tiles(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid) {
 	auto width = grid->get_size()[0];
 	auto height = grid->get_size()[1];
-	auto sector_size = grid->get_sector_size();
+	auto sector_size = path::SECTOR_SIZE;
 
 	float tile_offset_width = 2.0f / (width * sector_size);
 	float tile_offset_height = 2.0f / (height * sector_size);
@@ -529,7 +529,7 @@ void RenderManager1::create_impassible_tiles(const std::shared_ptr<path::Grid<pa
 void RenderManager1::create_portal_tiles(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid) {
 	auto width = grid->get_size()[0];
 	auto height = grid->get_size()[1];
-	auto sector_size = grid->get_sector_size();
+	auto sector_size = path::SECTOR_SIZE;
 
 	float tile_offset_width = 2.0f / (width * sector_size);
 	float tile_offset_height = 2.0f / (height * sector_size);
@@ -606,7 +606,7 @@ void RenderManager1::create_portal_tiles(const std::shared_ptr<path::Grid<path::
 void RenderManager1::create_waypoint_tiles(const Path &path) {
 	auto width = grid->get_size()[0];
 	auto height = grid->get_size()[1];
-	auto sector_size = grid->get_sector_size();
+	auto sector_size = path::SECTOR_SIZE;
 
 	float tile_offset_width = 2.0f / (width * sector_size);
 	float tile_offset_height = 2.0f / (height * sector_size);

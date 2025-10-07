@@ -71,14 +71,14 @@ public:
 	 *
 	 * @return Pathfinding grid.
 	 */
-	const std::shared_ptr<Grid<path::SECTOR_SIZE>> &get_grid(grid_id_t id) const;
+	const std::shared_ptr<Grid<N>> &get_grid(grid_id_t id) const;
 
 	/**
 	 * Add a grid to the pathfinder.
 	 *
 	 * @param grid Grid to add.
 	 */
-	void add_grid(const std::shared_ptr<Grid<path::SECTOR_SIZE>> &grid);
+	void add_grid(const std::shared_ptr<Grid<N>> &grid);
 
 	/**
 	 * Get the path for a pathfinding request.
@@ -144,12 +144,12 @@ private:
 	 *
 	 * Each grid can have separate pathing.
 	 */
-	std::unordered_map<grid_id_t, std::shared_ptr<Grid<path::SECTOR_SIZE>>> grids;
+	std::unordered_map<grid_id_t, std::shared_ptr<Grid<N>>> grids;
 
 	/**
 	 * Integrator for flow field calculations.
 	 */
-	std::shared_ptr<Integrator<path::SECTOR_SIZE>> integrator;
+	std::shared_ptr<Integrator<N>> integrator;
 };
 
 class PortalNode;
@@ -168,12 +168,11 @@ Pathfinder<N>::Pathfinder() :
 template <size_t N>
 const Path Pathfinder<N>::get_path(const PathRequest &request) {
 	auto grid = this->grids.at(request.grid_id);
-	auto sector_size = grid->get_sector_size();
 
 	// Check if the target is within the grid
 	auto grid_size = grid->get_size();
-	auto grid_width = grid_size[0] * sector_size;
-	auto grid_height = grid_size[1] * sector_size;
+	auto grid_width = grid_size[0] * N;
+	auto grid_height = grid_size[1] * N;
 	if (request.target.ne < 0
 	    or request.target.se < 0
 	    or request.target.ne >= static_cast<coord::tile_t>(grid_width)
@@ -185,15 +184,15 @@ const Path Pathfinder<N>::get_path(const PathRequest &request) {
 		return Path{request.grid_id, PathResult::OUT_OF_BOUNDS, {}};
 	}
 
-	auto start_sector_x = request.start.ne / sector_size;
-	auto start_sector_y = request.start.se / sector_size;
+	auto start_sector_x = request.start.ne / N;
+	auto start_sector_y = request.start.se / N;
 	auto start_sector = grid->get_sector(start_sector_x, start_sector_y);
 
-	auto target_sector_x = request.target.ne / sector_size;
-	auto target_sector_y = request.target.se / sector_size;
+	auto target_sector_x = request.target.ne / N;
+	auto target_sector_y = request.target.se / N;
 	auto target_sector = grid->get_sector(target_sector_x, target_sector_y);
 
-	auto target = request.target - target_sector->get_position().to_tile(sector_size);
+	auto target = request.target - target_sector->get_position().to_tile(N);
 	if (target_sector->get_cost_field()->get_cost(target) == COST_IMPASSABLE) {
 		// TODO: This may be okay if the target is a building or unit
 		log::log(DBG << "Path not found (start = "
@@ -204,12 +203,12 @@ const Path Pathfinder<N>::get_path(const PathRequest &request) {
 	}
 
 	// Integrate the target field
-	coord::tile_delta target_delta = request.target - target_sector->get_position().to_tile(sector_size);
+	coord::tile_delta target_delta = request.target - target_sector->get_position().to_tile(N);
 	auto target_integration_field = this->integrator->integrate(target_sector->get_cost_field(),
 	                                                            target_delta);
 
 	if (target_sector == start_sector) {
-		auto start = request.start - start_sector->get_position().to_tile(sector_size);
+		auto start = request.start - start_sector->get_position().to_tile(N);
 
 		if (target_integration_field->get_cell(start.ne, start.se).cost != INTEGRATED_COST_UNREACHABLE) {
 			// Exit early if the start and target are in the same sector
@@ -242,7 +241,7 @@ const Path Pathfinder<N>::get_path(const PathRequest &request) {
 	}
 
 	// Check which portals are reachable from the start field
-	coord::tile_delta start = request.start - start_sector->get_position().to_tile(sector_size);
+	coord::tile_delta start = request.start - start_sector->get_position().to_tile(N);
 	auto start_integration_field = this->integrator->integrate(start_sector->get_cost_field(),
 	                                                           start,
 	                                                           false);
@@ -292,7 +291,7 @@ const Path Pathfinder<N>::get_path(const PathRequest &request) {
 		auto next_sector_id = portal->get_exit_sector(prev_sector_id);
 		auto next_sector = grid->get_sector(next_sector_id);
 
-		target_delta = request.target - next_sector->get_position().to_tile(sector_size);
+		target_delta = request.target - next_sector->get_position().to_tile(N);
 		bool with_los = los_depth > 0;
 
 		sector_fields = this->integrator->get(next_sector->get_cost_field(),
@@ -342,10 +341,9 @@ const Pathfinder<N>::portal_star_t Pathfinder<N>::portal_a_star(const PathReques
 
 	auto grid = this->grids.at(request.grid_id);
 	auto &portal_map = grid->get_portal_map();
-	auto sector_size = grid->get_sector_size();
 
-	auto start_sector_x = request.start.ne / sector_size;
-	auto start_sector_y = request.start.se / sector_size;
+	auto start_sector_x = request.start.ne / N;
+	auto start_sector_y = request.start.se / N;
 	auto start_sector = grid->get_sector(start_sector_x, start_sector_y);
 
 	// path node storage, always provides cheapest next node.
@@ -366,7 +364,7 @@ const Pathfinder<N>::portal_star_t Pathfinder<N>::portal_a_star(const PathReques
 		auto &portal_node = portal_map.at(portal->get_id());
 		portal_node->entry_sector = start_sector->get_id();
 
-		auto sector_pos = grid->get_sector(portal->get_exit_sector(start_sector->get_id()))->get_position().to_tile(sector_size);
+		auto sector_pos = grid->get_sector(portal->get_exit_sector(start_sector->get_id()))->get_position().to_tile(N);
 		auto portal_pos = portal->get_exit_center(start_sector->get_id());
 		auto portal_abs_pos = sector_pos + portal_pos;
 		auto heuristic_cost = Pathfinder<N>::heuristic_cost(portal_abs_pos, request.target);
@@ -430,7 +428,7 @@ const Pathfinder<N>::portal_star_t Pathfinder<N>::portal_a_star(const PathReques
 				if (not_visited) {
 					// Get heuristic cost (from exit node to target cell)
 					auto exit_sector = grid->get_sector(exit->portal->get_exit_sector(exit->entry_sector.value()));
-					auto exit_sector_pos = exit_sector->get_position().to_tile(sector_size);
+					auto exit_sector_pos = exit_sector->get_position().to_tile(N);
 					auto exit_portal_pos = exit->portal->get_exit_center(exit->entry_sector.value());
 					exit->heuristic_cost = Pathfinder<N>::heuristic_cost(
 						exit_sector_pos + exit_portal_pos,
@@ -472,9 +470,8 @@ const std::vector<coord::tile> Pathfinder<N>::get_waypoints(const std::vector<st
 	std::vector<coord::tile> waypoints;
 
 	auto grid = this->get_grid(request.grid_id);
-	auto sector_size = grid->get_sector_size();
-	coord::tile_t start_x = request.start.ne % sector_size;
-	coord::tile_t start_y = request.start.se % sector_size;
+	coord::tile_t start_x = request.start.ne % N;
+	coord::tile_t start_y = request.start.se % N;
 
 	bool los_reached = false;
 
@@ -483,7 +480,7 @@ const std::vector<coord::tile> Pathfinder<N>::get_waypoints(const std::vector<st
 	flow_dir_t current_direction = flow_fields.at(0).second->get_dir(current_x, current_y);
 	for (size_t i = 0; i < flow_fields.size(); ++i) {
 		auto &sector = grid->get_sector(flow_fields[i].first);
-		auto sector_pos = sector->get_position().to_tile(sector_size);
+		auto sector_pos = sector->get_position().to_tile(N);
 		auto &flow_field = flow_fields[i].second;
 
 		// navigate the flow field vectors until we reach its edge (or the target)
@@ -553,11 +550,11 @@ const std::vector<coord::tile> Pathfinder<N>::get_waypoints(const std::vector<st
 		// reset the current position for the next flow field
 		switch (current_direction) {
 		case flow_dir_t::NORTH:
-			current_y = sector_size - 1;
+			current_y = N - 1;
 			break;
 		case flow_dir_t::NORTH_EAST:
 			current_x = current_x + 1;
-			current_y = sector_size - 1;
+			current_y = N - 1;
 			break;
 		case flow_dir_t::EAST:
 			current_x = 0;
@@ -574,10 +571,10 @@ const std::vector<coord::tile> Pathfinder<N>::get_waypoints(const std::vector<st
 			current_y = 0;
 			break;
 		case flow_dir_t::WEST:
-			current_x = sector_size - 1;
+			current_x = N - 1;
 			break;
 		case flow_dir_t::NORTH_WEST:
-			current_x = sector_size - 1;
+			current_x = N - 1;
 			current_y = current_y - 1;
 			break;
 		default:
@@ -602,12 +599,12 @@ int Pathfinder<N>::heuristic_cost(const coord::tile &portal_pos,
 }
 
 template <size_t N>
-const std::shared_ptr<Grid<path::SECTOR_SIZE>> &Pathfinder<N>::get_grid(grid_id_t id) const {
+const std::shared_ptr<Grid<N>> &Pathfinder<N>::get_grid(grid_id_t id) const {
 	return this->grids.at(id);
 }
 
 template <size_t N>
-void Pathfinder<N>::add_grid(const std::shared_ptr<Grid<path::SECTOR_SIZE>> &grid) {
+void Pathfinder<N>::add_grid(const std::shared_ptr<Grid<N>> &grid) {
 	this->grids[grid->get_id()] = grid;
 }
 
