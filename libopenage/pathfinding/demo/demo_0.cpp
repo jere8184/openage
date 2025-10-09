@@ -26,14 +26,9 @@
 
 namespace openage::path::tests {
 
-
 void path_demo_0(const util::Path &path) {
-	// Side length of the field
-	// Creates a 10x10 grid
-	auto field_length = 10;
-
 	// Cost field with some obstacles
-	auto cost_field = std::make_shared<CostField<path::SECTOR_SIZE>>();
+	auto cost_field = std::make_shared<CostField<SECTOR_SIZE>>();
 
 	const time::time_t time = time::TIME_ZERO;
 	cost_field->set_cost(coord::tile_delta{0, 0}, COST_IMPASSABLE, time);
@@ -48,7 +43,7 @@ void path_demo_0(const util::Path &path) {
 	log::log(INFO << "Created cost field");
 
 	// Create an integration field from the cost field
-	auto integration_field = std::make_shared<IntegrationField<path::SECTOR_SIZE>>();
+	auto integration_field = std::make_shared<IntegrationField<SECTOR_SIZE>>();
 	log::log(INFO << "Created integration field");
 
 	// Set cell (7, 7) to be the initial target cell
@@ -57,7 +52,7 @@ void path_demo_0(const util::Path &path) {
 	log::log(INFO << "Calculated integration field for target cell (7, 7)");
 
 	// Create a flow field from the integration field
-	auto flow_field = std::make_shared<FlowField<path::SECTOR_SIZE>>();
+	auto flow_field = std::make_shared<FlowField<SECTOR_SIZE>>();
 	log::log(INFO << "Created flow field");
 
 	flow_field->build(integration_field);
@@ -90,7 +85,7 @@ void path_demo_0(const util::Path &path) {
 				auto grid_x = tile_pos.first;
 				auto grid_y = tile_pos.second;
 
-				if (grid_x >= 0 and grid_x < field_length and grid_y >= 0 and grid_y < field_length) {
+				if (grid_x >= 0 and grid_x < SECTOR_SIZE and grid_y >= 0 and grid_y < SECTOR_SIZE) {
 					log::log(INFO << "Selected new target cell (" << grid_x << ", " << grid_y << ")");
 
 					// Recalculate the integration field and the flow field
@@ -204,7 +199,7 @@ void RenderManager0::run() {
 	this->window->close();
 }
 
-void RenderManager0::show_cost_field(const std::shared_ptr<path::CostField<path::SECTOR_SIZE>> &field) {
+void RenderManager0::show_cost_field(const std::shared_ptr<path::CostField<SECTOR_SIZE>> &field) {
 	Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 	auto unifs = this->cost_shader->new_uniform_input(
 		"model",
@@ -224,7 +219,7 @@ void RenderManager0::show_cost_field(const std::shared_ptr<path::CostField<path:
 	this->field_pass->set_renderables({renderable});
 }
 
-void RenderManager0::show_integration_field(const std::shared_ptr<path::IntegrationField<path::SECTOR_SIZE>> &field) {
+void RenderManager0::show_integration_field(const std::shared_ptr<path::IntegrationField<SECTOR_SIZE>> &field) {
 	Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 	auto unifs = this->integration_shader->new_uniform_input(
 		"model",
@@ -244,8 +239,8 @@ void RenderManager0::show_integration_field(const std::shared_ptr<path::Integrat
 	this->field_pass->set_renderables({renderable});
 }
 
-void RenderManager0::show_flow_field(const std::shared_ptr<path::FlowField<path::SECTOR_SIZE>> &flow_field,
-                                     const std::shared_ptr<path::IntegrationField<path::SECTOR_SIZE>> &int_field) {
+void RenderManager0::show_flow_field(const std::shared_ptr<path::FlowField<SECTOR_SIZE>> &flow_field,
+                                     const std::shared_ptr<path::IntegrationField<SECTOR_SIZE>> &int_field) {
 	Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 	auto unifs = this->flow_shader->new_uniform_input(
 		"model",
@@ -265,7 +260,7 @@ void RenderManager0::show_flow_field(const std::shared_ptr<path::FlowField<path:
 	this->field_pass->set_renderables({renderable});
 }
 
-void RenderManager0::show_vectors(const std::shared_ptr<path::FlowField<path::SECTOR_SIZE>> &field) {
+void RenderManager0::show_vectors(const std::shared_ptr<path::FlowField<SECTOR_SIZE>> &field) {
 	static const std::unordered_map<flow_dir_t, Eigen::Vector3f> offset_dir{
 		{flow_dir_t::NORTH, {-0.25f, 0.0f, 0.0f}},
 		{flow_dir_t::NORTH_EAST, {-0.25f, 0.0f, -0.25f}},
@@ -552,7 +547,7 @@ void RenderManager0::init_passes() {
 		renderer->get_display_target());
 }
 
-renderer::resources::MeshData RenderManager0::get_cost_field_mesh(const std::shared_ptr<CostField<path::SECTOR_SIZE>> &field,
+renderer::resources::MeshData RenderManager0::get_cost_field_mesh(const std::shared_ptr<CostField<SECTOR_SIZE>> &field,
                                                                   size_t resolution) {
 	// increase by 1 in every dimension because to get the vertex length
 	// of each dimension
@@ -638,7 +633,7 @@ renderer::resources::MeshData RenderManager0::get_cost_field_mesh(const std::sha
 	return {std::move(vert_data), std::move(idx_data), info};
 }
 
-renderer::resources::MeshData RenderManager0::get_integration_field_mesh(const std::shared_ptr<IntegrationField<path::SECTOR_SIZE>> &field,
+renderer::resources::MeshData RenderManager0::get_integration_field_mesh(const std::shared_ptr<IntegrationField<SECTOR_SIZE>> &field,
                                                                          size_t resolution) {
 	// increase by 1 in every dimension because to get the vertex length
 	// of each dimension
@@ -724,8 +719,8 @@ renderer::resources::MeshData RenderManager0::get_integration_field_mesh(const s
 	return {std::move(vert_data), std::move(idx_data), info};
 }
 
-renderer::resources::MeshData RenderManager0::get_flow_field_mesh(const std::shared_ptr<FlowField<path::SECTOR_SIZE>> &flow_field,
-                                                                  const std::shared_ptr<path::IntegrationField<path::SECTOR_SIZE>> &int_field,
+renderer::resources::MeshData RenderManager0::get_flow_field_mesh(const std::shared_ptr<FlowField<SECTOR_SIZE>> &flow_field,
+                                                                  const std::shared_ptr<path::IntegrationField<SECTOR_SIZE>> &int_field,
                                                                   size_t resolution) {
 	// increase by 1 in every dimension because to get the vertex length
 	// of each dimension

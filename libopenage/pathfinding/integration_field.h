@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <deque>
@@ -166,7 +167,7 @@ public:
 	 *
 	 * @return Integration field values.
 	 */
-	const std::vector<integrated_t> &get_cells() const;
+	const std::array<integrated_t, N * N> &get_cells() const;
 
 	/**
 	 * Reset the integration field for a new integration.
@@ -233,19 +234,14 @@ private:
 	                                    int corner_y);
 
 	/**
-	 * Side length of the field.
-	 */
-	size_t size;
-
-	/**
 	 * Integration field values.
 	 */
-	std::vector<integrated_t> cells;
+	std::array<integrated_t, N * N> cells;
 };
 
 template <size_t N>
-IntegrationField<N>::IntegrationField() :
-	cells(N * N, INTEGRATE_INIT) {
+IntegrationField<N>::IntegrationField() {
+	cells.fill(INTEGRATE_INIT);
 	log::log(DBG << "Created integration field with size " << N << "x" << N);
 }
 
@@ -683,7 +679,7 @@ void IntegrationField<N>::integrate_cost(const std::shared_ptr<CostField<N>> &co
 	}
 }
 template <size_t N>
-const std::vector<integrated_t> &IntegrationField<N>::get_cells() const {
+const std::array<integrated_t, N * N> &IntegrationField<N>::get_cells() const {
 	return this->cells;
 }
 

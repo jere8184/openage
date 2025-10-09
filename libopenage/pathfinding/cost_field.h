@@ -106,7 +106,7 @@ public:
 	 *
 	 * @return Cost field values.
 	 */
-	const std::array<cost_t, N> &get_costs() const;
+	const std::array<cost_t, N * N> &get_costs() const;
 
 	/**
 	 * Set the cost field values.
@@ -114,7 +114,7 @@ public:
 	 * @param cells Cost field values.
 	 * @param valid_until Time at which the cost value expires.
 	 */
-	void set_costs(std::array<cost_t, N> &&cells, const time::time_t &changed);
+	void set_costs(std::array<cost_t, N * N> &&cells, const time::time_t &changed);
 
 	/**
 	 * Stamp a cost field cell at a given time.
@@ -156,11 +156,6 @@ public:
 
 private:
 	/**
-	 * Side length of the field.
-	 */
-	size_t size;
-
-	/**
 	 * Time the cost field expires.
 	 */
 	time::time_t valid_until;
@@ -168,25 +163,25 @@ private:
 	/**
 	 * Cost field values.
 	 */
-	std::array<cost_t, N> cells;
+	std::array<cost_t, N * N> cells;
 
 	/**
 	 * Cost stamp vector.
 	 */
-	std::array<std::optional<cost_stamp_t>, N> cost_stamps;
+	std::array<std::optional<cost_stamp_t>, N * N> cost_stamps;
 
 
 	/**
 	 * Array curve recording cell cost history,
 	 */
-	curve::Array<cost_t, N> cell_cost_history;
+	curve::Array<cost_t, N * N> cell_cost_history;
 };
 
 template <size_t N>
 CostField<N>::CostField(const std::shared_ptr<event::EventLoop> &loop, size_t id) :
 	valid_until{time::TIME_MIN},
-	cells(N * N, COST_MIN),
 	cell_cost_history(loop, id) {
+	cells.fill(COST_MIN);
 	log::log(DBG << "Created cost field with size " << N << "x" << N);
 }
 
@@ -221,12 +216,12 @@ void CostField<N>::set_cost(size_t x, size_t y, cost_t cost, const time::time_t 
 }
 
 template <size_t N>
-const std::array<cost_t, N> &CostField<N>::get_costs() const {
+const std::array<cost_t, N * N> &CostField<N>::get_costs() const {
 	return this->cells;
 }
 
 template <size_t N>
-void CostField<N>::set_costs(std::array<cost_t, N> &&cells, const time::time_t &valid_until) {
+void CostField<N>::set_costs(std::array<cost_t, N * N> &&cells, const time::time_t &valid_until) {
 	ENSURE(cells.size() == this->cells.size(),
 	       "cells vector has wrong size: " << cells.size()
 	                                       << "; expected: "

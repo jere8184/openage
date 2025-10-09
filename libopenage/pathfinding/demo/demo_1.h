@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "definitions.h"
 #include "pathfinding/definitions.h"
 #include "pathfinding/path.h"
 #include "renderer/resources/mesh_data.h"
@@ -27,7 +28,6 @@ template <size_t N>
 class Grid;
 
 namespace tests {
-
 
 /**
  * Show the functionality of the high-level pathfinder:
@@ -57,7 +57,7 @@ public:
 	RenderManager1(const std::shared_ptr<renderer::gui::GuiApplicationWithLogger> &app,
 	               const std::shared_ptr<renderer::Window> &window,
 	               const util::Path &path,
-	               const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid);
+	               const std::shared_ptr<path::Grid<SECTOR_SIZE>> &grid);
 	~RenderManager1() = default;
 
 	/**
@@ -94,21 +94,21 @@ private:
 	 *
 	 * @return Mesh data for the grid.
 	 */
-	static renderer::resources::MeshData get_grid_mesh(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid);
+	static renderer::resources::MeshData get_grid_mesh(const std::shared_ptr<path::Grid<SECTOR_SIZE>> &grid);
 
 	/**
 	 * Create renderables for the impassible tiles in the grid.
 	 *
 	 * @param grid Pathing grid.
 	 */
-	void create_impassible_tiles(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid);
+	void create_impassible_tiles(const std::shared_ptr<path::Grid<SECTOR_SIZE>> &grid);
 
 	/**
 	 * Create renderables for the portal tiles in the grid.
 	 *
 	 * @param grid Pathing grid.
 	 */
-	void create_portal_tiles(const std::shared_ptr<path::Grid<path::SECTOR_SIZE>> &grid);
+	void create_portal_tiles(const std::shared_ptr<path::Grid<SECTOR_SIZE>> &grid);
 
 	/**
 	 * Path to the project rootdir.
@@ -118,7 +118,7 @@ private:
 	/**
 	 * Pathing grid of the demo.
 	 */
-	std::shared_ptr<path::Grid<path::SECTOR_SIZE>> grid;
+	std::shared_ptr<path::Grid<SECTOR_SIZE>> grid;
 
 	/* Renderer objects */
 

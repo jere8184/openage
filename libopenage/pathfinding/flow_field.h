@@ -134,7 +134,7 @@ public:
 	 *
 	 * @return Flow field values.
 	 */
-	const std::vector<flow_t> &get_cells() const;
+	const std::array<flow_t, N * N> &get_cells() const;
 
 	/**
 	 * Reset the flow field values for rebuilding the field.
@@ -169,27 +169,21 @@ public:
 
 private:
 	/**
-	 * Side length of the field.
-	 */
-	size_t size;
-
-	/**
 	 * Flow field cells.
 	 */
-	std::vector<flow_t> cells;
+	std::array<flow_t, N * N> cells;
 };
 
 
 template <size_t N>
-FlowField<N>::FlowField() :
-	cells(N * N, FLOW_INIT) {
+FlowField<N>::FlowField() {
+	cells.fill(FLOW_INIT);
 	log::log(DBG << "Created flow field with size " << N << "x" << N);
 }
 
 template <size_t N>
-FlowField<N>::FlowField(const std::shared_ptr<IntegrationField<N>> &integration_field) :
-	size{integration_field->get_size()},
-	cells(N * N, FLOW_INIT) {
+FlowField<N>::FlowField(const std::shared_ptr<IntegrationField<N>> &integration_field) {
+	cells.fill(N * N, FLOW_INIT);
 	this->build(integration_field);
 }
 
@@ -424,7 +418,7 @@ void FlowField<N>::build(const std::shared_ptr<IntegrationField<N>> &integration
 }
 
 template <size_t N>
-const std::vector<flow_t> &FlowField<N>::get_cells() const {
+const std::array<flow_t, N * N> &FlowField<N>::get_cells() const {
 	return this->cells;
 }
 
